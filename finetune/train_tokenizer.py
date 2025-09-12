@@ -16,6 +16,8 @@ import comet_ml
 
 # Ensure project root is in path
 sys.path.append("../")
+sys.path.append(os.getcwd())
+
 from config import Config
 from dataset import QlibDataset
 from model.kronos import KronosTokenizer

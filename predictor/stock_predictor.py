@@ -58,7 +58,7 @@ class KronosStockPredictor:
         """Loads and preprocesses stock data from the specified CSV file."""
         try:
             df = pd.read_csv(self.data_path)
-            df["timestamps"] = pd.to_datetime(df["trade_date"])
+            df["timestamps"] = pd.to_datetime(df["timestamps"])
             return df
         except FileNotFoundError:
             print(f"Error: Data file not found at {self.data_path}")
@@ -206,7 +206,9 @@ if __name__ == "__main__":
         try:
             # Instantiate the class with a specific model
             predictor_instance = KronosStockPredictor(
-                model_name=model_path, stock_code="600519.SH"
+                model_name=model_path,
+                stock_code="600519.SH",
+                data_path="./data/min_600519_akshare_demo.csv",
             )
 
             # Use the predict method to run the full experiment

@@ -1,0 +1,125 @@
+from .base import *
+
+
+class Alpha101(FactorBase):
+    name='alpha101'
+
+    def get_expressions(self):
+        open_ = self.open * self.adj_factor
+        close = self.close * self.adj_factor
+        high = self.high * self.adj_factor
+        low = self.low * self.adj_factor
+        volume = self.volume
+        vwap = self.amount / self.volume * 10 * self.adj_factor
+        ret, ret_std, ret_rank_std = self.get_label(1, 'close')
+        
+        expressions = {}
+        # alpha101计算公式
+        # expressions['alpha1'] = 
+        # expressions['alpha2'] = 
+        expressions['alpha3'] = -Corr(CSRank(open_), CSRank(volume), 10)
+        expressions['alpha4'] = -Rank(CSRank(low), 9)
+        expressions['alpha5'] = -CSRank((open_ - (Sum(vwap, 10) / 10))) * Abs(CSRank(close - vwap))
+        expressions['alpha6'] = -Corr(open_, volume, 10)
+        # expressions['alpha7'] = 
+        expressions['alpha8'] = -CSRank(Sum(open_, 5) * Sum(ret, 5)) - Ref(Sum(open_, 5) * Sum(ret, 5), 10)
+        # expressions['alpha9'] = 
+        # expressions['alpha10'] = 
+        expressions['alpha11'] = CSRank(Max(vwap - close, 3)) + CSRank(Min(vwap - close, 3)) * CSRank(Delta(volume, 3))
+        expressions['alpha12'] = -Sign(Delta(volume, 1)) * Delta(close, 1)
+        expressions['alpha13'] = -CSRank(Cov(CSRank(close), CSRank(volume), 5))
+        expressions['alpha14'] = -CSRank(Delta(ret, 3)) * Corr(open_, volume, 10)
+        expressions['alpha15'] = -Sum(CSRank(Corr(CSRank(high), CSRank(volume), 3)), 3)
+        expressions['alpha16'] = -CSRank(Cov(CSRank(high), CSRank(volume), 5))
+        # expressions['alpha17'] = -CSRank(Rank(close, 10)) * CSRank(Delta(Delta(close, 1), 1)) * CSRank(Rank(volume / adv20, 5))
+        expressions['alpha18'] = -CSRank(Std(Abs(close - open_), 5)) + close - open_ + Corr(close, open_, 10)
+        expressions['alpha19'] = -Sign(close - Ref(close, 7) + Delta(close, 7)) * (1 + CSRank(1 + Sum(ret, 250)))
+        expressions['alpha20'] = -CSRank(open_ - Ref(high, 1)) * CSRank(open_ - Ref(close, 1)) * CSRank(open_ - Ref(low, 1))
+        # expressions['alpha21'] = 
+        expressions['alpha22'] = - Delta(Corr(high, volume, 5), 5) * CSRank(Std(close, 20))
+        # expressions['alpha23'] =
+        # expressions['alpha24'] = 
+        # expressions['alpha25'] = CSRank(-ret * )
+        expressions['alpha26'] = -Max(Corr(Rank(volume, 5), Rank(high, 5), 5), 3)
+        # expressions['alpha27'] = 
+        # expressions['alpha28'] = 
+        # expressions['alpha29'] =
+        expressions['alpha30'] = 1 - CSRank(Sign(close - Ref(close, 1))) + Sign(Ref(close, 1) - Ref(close, 2)) + Sign(Ref(close, 2) - Ref(close, 3)) * Sum(volume, 5) / Sum(volume, 20)
+        # expressions['alpha31'] =
+        # expressions['alpha32'] =
+        expressions['alpha33'] = CSRank(-(1 - open_ / close))
+        expressions['alpha34'] = CSRank(1 - CSRank(Std(ret, 2) / Std(ret, 5))) + 1 - CSRank(Ref(close, 1))
+        expressions['alpha35'] = Rank(volume, 32) * (1 - Rank(close + high - low, 16)) * (1 - Rank(ret, 32))
+        # expressions['alpha36'] = 
+        expressions['alpha37'] = CSRank(Corr(Ref(open_ - close, 1), close, 200)) + CSRank(open_ - close)
+        expressions['alpha38'] = - CSRank(Rank(close, 10)) * CSRank(close / open_)
+        # expressions['alpha39'] = 
+        expressions['alpha40'] = -CSRank(Std(high, 10)) * Corr(high, volume, 10)
+        expressions['alpha41'] = (high * low) ** 0.5 - vwap
+        expressions['alpha42'] = CSRank(vwap - close) / CSRank(vwap + close)
+        # expressions['alpha43'] = 
+        expressions['alpha44'] = -Corr(high, CSRank(volume), 5)
+        expressions['alpha45'] = -CSRank(Sum(Ref(close, 5), 20) / 20) * Corr(close, volume, 2) * CSRank(Corr(Sum(close, 5), Sum(close, 20), 2))
+        # expressions['alpha46'] = 
+        # expressions['alpha47'] = CSRank(1 / close * volume)
+        # expressions['alpha48'] = 
+        # expressions['alpha49'] = 
+        expressions['alpha50'] = -Max(CSRank(Corr(CSRank(volume), CSRank(vwap), 5)), 5)
+        # expressions['alpha51'] = 
+        expressions['alpha52'] = -(Min(low, 5) + Ref(Min(low, 5), 5)) * CSRank((Sum(ret, 240) - Sum(ret, 20)) / 220) * Rank(volume, 5)
+        expressions['alpha53'] = -Delta(((close - low) - (high - close)) / (close - low), 9)
+        expressions['alpha54'] = -(low - close) * open_ ** 5 / ((low - high) * close ** 5)
+        expressions['alpha55'] = -Corr(CSRank((close - Min(low, 12)) / (Max(high, 12) - Min(low, 12))), CSRank(volume), 6)
+        # expressions['alpha56'] = 
+        # expressions['alpha57'] = 
+        # expressions['alpha58'] = 
+        # expressions['alpha59'] = 
+        # expressions['alpha60'] = 
+        # expressions['alpha61'] = 
+        # expressions['alpha62'] = 
+        # expressions['alpha63'] = 
+        # expressions['alpha64'] = 
+        # expressions['alpha65'] = 
+        # expressions['alpha66'] = 
+        # expressions['alpha67'] = 
+        # expressions['alpha68'] = 
+        # expressions['alpha69'] = 
+        # expressions['alpha70'] = 
+        # expressions['alpha71'] = 
+        # expressions['alpha72'] = 
+        # expressions['alpha73'] = 
+        # expressions['alpha74'] = 
+        # expressions['alpha75'] = 
+        # expressions['alpha76'] = 
+        # expressions['alpha77'] = 
+        # expressions['alpha78'] = 
+        # expressions['alpha79'] = 
+        # expressions['alpha80'] = 
+        # expressions['alpha81'] = 
+        # expressions['alpha82'] = 
+        expressions['alpha83'] = (CSRank(Ref(((high - low) / (Sum(close, 5) / 5)), 2)) * CSRank(CSRank(volume))) / (((high - low) / (Sum(close, 5) / 5)) / (vwap - close))
+        expressions['alpha84'] = Rank(vwap - Max(vwap, 15), 20) ** Delta(close, 4)
+        # expressions['alpha85'] = CSRank(Corr(((high * 0.876703) + (close * (1 - 0.876703))), adv30, 9.61331))^CSRank(correlation(Ts_Rank(((high + low) / 2), 3.70596), Ts_Rank(volume, 10.1595), 7.11408))
+        # expressions['alpha86'] = 
+        # expressions['alpha87'] = 
+        # expressions['alpha88'] = 
+        # expressions['alpha89'] = 
+        # expressions['alpha90'] = 
+        # expressions['alpha91'] = 
+        # expressions['alpha92'] = 
+        # expressions['alpha93'] = 
+        # expressions['alpha94'] = 
+        # expressions['alpha95'] = 
+        # expressions['alpha96'] = 
+        # expressions['alpha97'] = 
+        # expressions['alpha98'] = 
+        # expressions['alpha99'] = 
+        # expressions['alpha100'] = 
+        expressions['alpha101'] = (close - open_) / ((high - low) + 0.001)
+
+        # 预测标签，ret
+        ret_t11, ret_t11_std, ret_t11_rank_std = self.get_label(11, 'open')
+        expressions['Ret_t11'] = ret_t11
+        expressions['Ret_t11_std'] = ret_t11_std
+        expressions['Ret_t11_rank_std'] = ret_t11_rank_std
+        return expressions

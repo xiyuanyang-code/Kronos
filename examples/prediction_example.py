@@ -50,9 +50,7 @@ def plot_prediction(kline_df, pred_df, model_name):
     ax2.legend(loc="upper left", fontsize=12)
     ax2.grid(True)
 
-    ax3.plot(
-        open_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
-    )
+    ax3.plot(open_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5)
     ax3.plot(open_df["Prediction"], label="Prediction", color="red", linewidth=1.5)
     ax3.set_ylabel("Open", fontsize=14)
     ax3.legend(loc="upper left", fontsize=12)
@@ -72,6 +70,7 @@ def experiment(model, model_name):
 
     lookback = 400
     pred_len = 120
+    print(df.head())
 
     x_df = df.loc[: lookback - 1, ["open", "high", "low", "close", "volume", "amount"]]
     x_timestamp = df.loc[: lookback - 1, "timestamps"]

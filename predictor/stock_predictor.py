@@ -2,11 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 import os
-from datetime import datetime
-from typing import Optional, Dict
 
 sys.path.append("../")
 sys.path.append(os.getcwd())
+from datetime import datetime
+from typing import Optional, Dict
+from tqdm import tqdm
 from model import Kronos, KronosTokenizer, KronosPredictor
 
 
@@ -17,11 +18,11 @@ class KronosStockPredictor:
 
     def __init__(
         self,
+        data: pd.DataFrame,
         model_name: str = "NeoQuasar/Kronos-base",
         tokenizer_name: str = "NeoQuasar/Kronos-Tokenizer-base",
-        device: str = "cuda:0",
+        device: str = "cuda",
         max_context: int = 512,
-        data_path: str = "./data/demo_600519.csv",
         stock_code: str = None,
     ):
         """
@@ -41,8 +42,8 @@ class KronosStockPredictor:
 
         self.device = device
         self.max_context = max_context
-        self.data_path = data_path
         self.stock_code = stock_code
+        self.data = data
         self.model_name = model_name
 
         print(f"Loading tokenizer: {tokenizer_name}")
@@ -53,16 +54,6 @@ class KronosStockPredictor:
         self.predictor = KronosPredictor(
             self.model, self.tokenizer, device=self.device, max_context=self.max_context
         )
-
-    def load_data(self) -> Optional[pd.DataFrame]:
-        """Loads and preprocesses stock data from the specified CSV file."""
-        try:
-            df = pd.read_csv(self.data_path)
-            df["timestamps"] = pd.to_datetime(df["timestamps"])
-            return df
-        except FileNotFoundError:
-            print(f"Error: Data file not found at {self.data_path}")
-            return None
 
     def plot_prediction(
         self,
@@ -139,7 +130,8 @@ class KronosStockPredictor:
         lookback: int = 400,
         pred_len: int = 120,
         pred_params: Optional[Dict] = None,
-    ):
+        start_pos: int = 0,
+    ) -> pd.DataFrame:
         """
         Main function to prepare data, make prediction, and plot results.
 
@@ -149,8 +141,7 @@ class KronosStockPredictor:
             pred_params (Optional[Dict]): A dictionary of parameters for the predictor.
         """
 
-        # 3. Prepare Data
-        df = self.load_data()
+        df = self.data.copy()
         if df is None:
             return
 
@@ -160,23 +151,26 @@ class KronosStockPredictor:
             )
             return
 
-        x_df = df.loc[
-            : lookback - 1, ["open", "high", "low", "close", "volume", "amount"]
-        ]
-        x_timestamp = df.loc[: lookback - 1, "timestamps"]
-        y_timestamp = df.loc[lookback : lookback + pred_len - 1, "timestamps"]
-
-        # 4. Make Prediction with customizable parameters
         default_pred_params = {
             "pred_len": pred_len,
             "T": 1.0,
             "top_p": 0.9,
             "sample_count": 1,
-            "verbose": True,
+            "verbose": False,
         }
-        # Merge default and user-provided parameters
         if pred_params:
             default_pred_params.update(pred_params)
+
+        # update pred_len
+        pred_params = default_pred_params["pred_len"]
+
+        x_df = df.loc[
+            : lookback - 1, ["open", "high", "low", "close", "volume", "amount"]
+        ]
+        x_timestamp = df.loc[start_pos : lookback + start_pos - 1, "timestamps"]
+        y_timestamp = df.loc[
+            lookback + start_pos : lookback + pred_len + start_pos - 1, "timestamps"
+        ]
 
         pred_df = self.predictor.predict(
             df=x_df,
@@ -186,9 +180,12 @@ class KronosStockPredictor:
         )
 
         # Combine historical and forecasted data for plotting
-        kline_df = df.loc[: lookback + pred_len - 1]
+        kline_df = df.loc[start_pos : lookback + pred_len + start_pos - 1]
 
-        self.plot_prediction(kline_df, pred_df)
+        # todo remove plotting predictions
+        # self.plot_prediction(kline_df, pred_df)
+
+        return pred_df
 
 
 if __name__ == "__main__":

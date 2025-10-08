@@ -2,6 +2,7 @@ import os
 import sys
 import torch
 import pandas as pd
+import argparse
 
 
 sys.path.insert(0, os.getcwd())
@@ -45,37 +46,6 @@ def get_stock_data_by_ts_code(df: pd.DataFrame, ts_code: str) -> pd.DataFrame:
     # filtered_df["timestamps"] = pd.to_datetime(df["day"], format="ISO8601")
     filtered_df["timestamps"] = pd.to_datetime(filtered_df["day"], format="ISO8601")
     return filtered_df.reset_index()
-
-
-# def rolling_forecast(
-#     ts_code: str, lookback, pred_len, pred_params=None, **kwargs
-# ) -> pd.DataFrame:
-#     predictions_list = []
-#     # for this situation, ts_code is a situation
-#     # date_df = get_stock_data_by_ts_code(df=total_df, ts_code=ts_code)
-#     date_df = pd.read_csv(f"./data/stock_202510/stock_{ts_code}.csv")
-#     data_length = len(date_df)
-
-#     if data_length < pred_len + lookback:
-#         print("Too long prediction windows or too few data")
-#         return []
-
-#     predictor = KronosStockPredictor(data=date_df, **kwargs, stock_code=ts_code)
-
-#     # start sliding window prediction
-#     print(f"length of the sliding windows: {data_length - lookback - pred_len + 1}")
-#     for i in trange(data_length - lookback - pred_len + 1):
-#         # i is starting index
-#         pred_df = predictor.predict(
-#             lookback=lookback, pred_len=pred_len, pred_params=pred_params, start_pos=i
-#         )
-
-#         if not pred_df.empty:
-#             predictions_list.append(pred_df)
-#         else:
-#             print(f"Error in windows: {i}")
-
-#     return predictions_list
 
 
 def rolling_forecast(
@@ -123,7 +93,7 @@ def save_rolling_forecasts(
     """
     将滚动预测结果存储到按股票代码组织的文件夹中，每个预测 DataFrame 保存为一个 csv 文件。
     """
-    print(f"Saving directories into files: {os.path.abspath(base_dir)}")
+    # print(f"Saving directories into files: {os.path.abspath(base_dir)}")
     os.makedirs(base_dir, exist_ok=True)
     if ts_code is None:
         print("Error! Please fill in the ts_code params")
@@ -138,24 +108,45 @@ def save_rolling_forecasts(
         result = pd.DataFrame(result)
         # print(result.head())
         result.to_csv(os.path.join(save_dir, file_name), index=True)
-    print("All Prediction Done...")
+    # print("All Prediction Done...")
 
 
 if __name__ == "__main__":
-    print("Start rolling forecast.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--parallel", required=True)
+    args = parser.parse_args()
+
+    parallel = int(args.parallel)
     # setting GPU environment
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = f"{parallel-1}"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3,4,5,6,7"
     print("Current GPU nums:", torch.cuda.device_count())
     # several configs for rolling forecast
     # total stock code count
-    # TOTAL_STOCK_COUNT = 4963
-    TOTAL_STOCK_COUNT = 1
-
+    TOTAL_STOCK_COUNT = 4963
     MODEL_NAME = "NeoQuasar/Kronos-base"
     TOKENIZER_NAME = "NeoQuasar/Kronos-Tokenizer-base"
     DEVICE = "cuda"
     MAX_CONTENT = 512
-    for ts_code in range(0, TOTAL_STOCK_COUNT):
+    # feat: add parallel
+    TARGET_FILE_PATH = "./rolling_forecasts"
+    data_processed = [
+        int(dir_path.split("_")[-1]) for dir_path in os.listdir(TARGET_FILE_PATH)
+    ]
+    data_processed = sorted(data_processed)
+    all_data = list(range(TOTAL_STOCK_COUNT))
+    data_need_to_processed = list(set(all_data) - set(data_processed))
+
+    # chunking for parallel
+    length_to_be_processed = len(data_need_to_processed)
+    chunk_size = length_to_be_processed // 2
+    part1 = data_need_to_processed[0:chunk_size]
+    part2 = data_need_to_processed[chunk_size:length_to_be_processed]
+    parts = [part1, part2]
+    print(f"TSCODE NEED TO BE PROCESSED: {len(parts[parallel-1])}, starting from {parts[parallel-1][0]} to {parts[parallel-1][-1]}")
+
+    for ts_code in parts[parallel - 1]:
+        print(f"Starting Forecasting for: {ts_code}")
         result = rolling_forecast(
             ts_code,
             lookback=432,

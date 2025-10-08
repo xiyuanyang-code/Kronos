@@ -38,7 +38,7 @@ class KronosStockPredictor:
         if stock_code is None:
             print("Please pass stock code!")
             stock_code = "DEFAULT"
-        stock_code = stock_code.replace(".", "_")
+        # stock_code = stock_code.replace(".", "_")
 
         self.device = device
         self.max_context = max_context
@@ -46,9 +46,9 @@ class KronosStockPredictor:
         self.data = data
         self.model_name = model_name
 
-        print(f"Loading tokenizer: {tokenizer_name}")
+        # print(f"Loading tokenizer: {tokenizer_name}")
         self.tokenizer = KronosTokenizer.from_pretrained(tokenizer_name)
-        print(f"Loading model: {model_name}")
+        # print(f"Loading model: {model_name}")
         self.model = Kronos.from_pretrained(model_name)
 
         self.predictor = KronosPredictor(
@@ -74,14 +74,14 @@ class KronosStockPredictor:
 
         # Prepare data for plotting
         close_df = pd.concat([kline_df["close"], pred_df["close"]], axis=1)
-        volume_df = pd.concat([kline_df["volume"], pred_df["volume"]], axis=1)
-        open_df = pd.concat([kline_df["open"], pred_df["open"]], axis=1)
+        # volume_df = pd.concat([kline_df["volume"], pred_df["volume"]], axis=1)
+        # open_df = pd.concat([kline_df["open"], pred_df["open"]], axis=1)
 
         close_df.columns = ["Ground Truth", "Prediction"]
-        volume_df.columns = ["Ground Truth", "Prediction"]
-        open_df.columns = ["Ground Truth", "Prediction"]
+        # volume_df.columns = ["Ground Truth", "Prediction"]
+        # open_df.columns = ["Ground Truth", "Prediction"]
 
-        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
+        fig, (ax1) = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
 
         ax1.plot(
             close_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
@@ -92,23 +92,23 @@ class KronosStockPredictor:
         ax1.grid(True)
         ax1.set_title(f"Prediction for {self.model_name}", fontsize=16)
 
-        ax2.plot(
-            volume_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
-        )
-        ax2.plot(
-            volume_df["Prediction"], label="Prediction", color="red", linewidth=1.5
-        )
-        ax2.set_ylabel("Volume", fontsize=14)
-        ax2.legend(loc="upper left", fontsize=12)
-        ax2.grid(True)
+        # ax2.plot(
+        #     volume_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
+        # )
+        # ax2.plot(
+        #     volume_df["Prediction"], label="Prediction", color="red", linewidth=1.5
+        # )
+        # ax2.set_ylabel("Volume", fontsize=14)
+        # ax2.legend(loc="upper left", fontsize=12)
+        # ax2.grid(True)
 
-        ax3.plot(
-            open_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
-        )
-        ax3.plot(open_df["Prediction"], label="Prediction", color="red", linewidth=1.5)
-        ax3.set_ylabel("Open", fontsize=14)
-        ax3.legend(loc="upper left", fontsize=12)
-        ax3.grid(True)
+        # ax3.plot(
+        #     open_df["Ground Truth"], label="Ground Truth", color="blue", linewidth=1.5
+        # )
+        # ax3.plot(open_df["Prediction"], label="Prediction", color="red", linewidth=1.5)
+        # ax3.set_ylabel("Open", fontsize=14)
+        # ax3.legend(loc="upper left", fontsize=12)
+        # ax3.grid(True)
 
         plt.tight_layout()
 
@@ -164,13 +164,15 @@ class KronosStockPredictor:
         # update pred_len
         pred_params = default_pred_params["pred_len"]
 
-        x_df = df.loc[
-            : lookback - 1, ["open", "high", "low", "close", "volume", "amount"]
-        ]
-        x_timestamp = df.loc[start_pos : lookback + start_pos - 1, "timestamps"]
-        y_timestamp = df.loc[
-            lookback + start_pos : lookback + pred_len + start_pos - 1, "timestamps"
-        ]
+        x_df = df.loc[: lookback - 1, ["open", "high", "low", "close"]]
+        x_timestamp = pd.to_datetime(
+            df.loc[start_pos : lookback + start_pos - 1, "timestamps"]
+        )
+        y_timestamp = pd.to_datetime(
+            df.loc[
+                lookback + start_pos : lookback + pred_len + start_pos - 1, "timestamps"
+            ]
+        )
 
         pred_df = self.predictor.predict(
             df=x_df,

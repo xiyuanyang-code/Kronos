@@ -22,12 +22,17 @@ def gain_time_stamps():
     for day in tqdm(df_time_day["day"], total=len(df_time_day["day"])):
         for hour in range(9, 12):
             for minute in range(0, 60, 5):
-                if hour == 9 and minute < 30:
+                if hour == 9 and minute <= 30:
+                    continue
+                if hour == 11 and minute > 30:
                     continue
                 time_stamps.append(day.replace(hour=hour, minute=minute))
         for hour in range(13, 15):
             for minute in range(0, 60, 5):
+                if hour == 13 and minute == 0:
+                    continue
                 time_stamps.append(day.replace(hour=hour, minute=minute))
+        time_stamps.append(day.replace(hour=15, minute=0))
     return time_stamps
 
 

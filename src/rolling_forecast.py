@@ -42,7 +42,8 @@ def get_stock_data_by_ts_code(df: pd.DataFrame, ts_code: str) -> pd.DataFrame:
     elif "volume" not in filtered_df.columns:
         print("Error, no vol or volume found.")
 
-    filtered_df["timestamps"] = pd.to_datetime(df["day"], format="ISO8601")
+    # filtered_df["timestamps"] = pd.to_datetime(df["day"], format="ISO8601")
+    filtered_df["timestamps"] = pd.to_datetime(filtered_df["day"], format="ISO8601")
     return filtered_df.reset_index()
 
 
@@ -94,6 +95,7 @@ def save_rolling_forecasts(
     os.makedirs(base_dir, exist_ok=True)
     total_length = len(results)
     for result_dict in tqdm(results, total=total_length):
+        print(result_dict)
         ts_code = list(result_dict.keys())[0]
         pred_dfs = result_dict[ts_code]
 
@@ -104,6 +106,7 @@ def save_rolling_forecasts(
 
         # 遍历每个预测 DataFrame 并保存为 Parquet 文件
         for i, df in enumerate(pred_dfs):
+            print(df.head())
             # 为了方便命名，命名采取预测窗口的第一天的日期
             time_pred_ini = str(df["timestamps"].iloc[0]).strip()
             file_path = os.path.join(
@@ -123,14 +126,15 @@ def save_rolling_forecasts(
 if __name__ == "__main__":
     print("Start rolling forecast.")
     # setting GPU environment
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2,3,4,5,6,7"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2,3,4,5,6"
     print("Current GPU nums:", torch.cuda.device_count())
 
     # several configs for rolling forecast
 
     # trade codes
     # todo add more ts_codes
-    TRADE_CODES = ["600372", "600197", "600867"]
+    # TRADE_CODES = ["600372", "600197", "600867"]
+    TRADE_CODES = ["600372"]
     # * **600372**: **中航机载** (全称：中航航空电子系统股份有限公司)
     # * **600197**: **伊力特** (全称：新疆伊力特实业股份有限公司)
     # * **600867**: **通化东宝** (全称：通化东宝药业股份有限公司)
@@ -154,3 +158,5 @@ if __name__ == "__main__":
         }
         for ts_code in TRADE_CODES
     ]
+
+    save_rolling_forecasts(results=results)
